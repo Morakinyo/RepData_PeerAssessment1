@@ -253,6 +253,12 @@ ggplot(data=avsteps, aes(x=interval, y=steps)) +
 
 ```r
 highest_steps =avsteps %>% filter(steps == max(steps))
+highest_steps
+```
+
+```
+##   interval    steps
+## 1      835 206.1698
 ```
 
 ## Imputing missing values

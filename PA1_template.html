@@ -514,7 +514,10 @@ ggplot(data=avsteps, aes(x=interval, y=steps)) +
 ##  - attr(*, &quot;class&quot;)= chr [1:2] &quot;theme&quot; &quot;gg&quot;
 ##  - attr(*, &quot;complete&quot;)= logi FALSE
 ##  - attr(*, &quot;validate&quot;)= logi TRUE</code></pre>
-<pre class="r"><code>highest_steps =avsteps %&gt;% filter(steps == max(steps))</code></pre>
+<pre class="r"><code>highest_steps =avsteps %&gt;% filter(steps == max(steps))
+highest_steps</code></pre>
+<pre><code>##   interval    steps
+## 1      835 206.1698</code></pre>
 </div>
 </div>
 <div id="imputing-missing-values" class="section level2">

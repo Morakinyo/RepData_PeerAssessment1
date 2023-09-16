@@ -80,6 +80,7 @@ ggplot(data=avsteps, aes(x=interval, y=steps)) +
 
 ```{r}
 highest_steps =avsteps %>% filter(steps == max(steps))
+highest_steps
 ```
 
 ## Imputing missing values
