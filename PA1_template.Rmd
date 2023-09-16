@@ -1,25 +1,137 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
+author: "Morakinyo"
+date: "9/16/2023"
 output: 
   html_document:
     keep_md: true
 ---
 
+```{r, echo=TRUE}
+library(ggplot2)
+library(dplyr)
+library(lubridate)
 
+options(dplyr.summarise.inform = FALSE)
+```
 ## Loading and preprocessing the data
 
+```{r, echo=TRUE}
+url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+download.file(url, destfile = paste0(getwd(), '/repdata%2Fdata%2Factivity.zip'))
+unzip("repdata%2Fdata%2Factivity.zip")
+
+activity <- read.csv('activity.csv')
+head(activity)
+```
+
+
+Doing some exploratory analysis
+
+```{r, echo=TRUE}
+dim(activity)
+summary(activity)
+str(activity)
+```
 
 
 ## What is mean total number of steps taken per day?
 
+### The Total number of steps taken per day
 
+```{r, echo=TRUE}
+totalsteps <- aggregate(steps~date, activity,sum)
+totalsteps
+```
+
+### A Histogram of the total number of steps taken each day
+```{r, echo=TRUE}
+ggplot(totalsteps, aes(x = steps)) + geom_histogram(binwidth = 2000) + xlab("Total number of steps per day") + ylab("Frequency")
+```
+
+```{r, echo=TRUE}
+mean = mean(totalsteps$steps, na.rm = TRUE)
+median = median(totalsteps$steps, na.rm = TRUE)
+mean
+median
+```
+
+The mean and median are as follows respectively:
+
+    1. 10766.19
+    2. 10765
 
 ## What is the average daily activity pattern?
 
+### Time series plot of the average number of steps taken
 
+```{r, echo=TRUE}
+rm(mean)
+avsteps <- aggregate(steps~interval, activity, mean)
+
+ggplot(data=avsteps, aes(x=interval, y=steps)) +
+  geom_line() +
+  ggtitle("Time Series Plot of the Average Number of Steps") +
+  xlab("Interval") + 
+  ylab("Average number of steps taken")
+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+highest_steps =avsteps %>% filter(steps == max(steps))
+```
 
 ## Imputing missing values
 
+```{r, echo=TRUE}
+missing <- sum(!complete.cases(activity))
+```
 
+```{r, echo=TRUE}
+data_impute <- activity %>%
+  mutate(
+    steps = case_when(
+      is.na(steps) ~ avsteps$steps[match(activity$interval, avsteps$interval)],      
+      TRUE ~ as.numeric(steps)
+    ))
+```
+
+
+## A Histogram of the total number of steps taken each day after missing values are imputed
+
+```{r, echo=TRUE}
+total_steps <- data_impute %>% group_by(date) %>% summarise(daily_steps = sum(steps))
+
+ggplot(total_steps, aes(daily_steps)) + 
+  geom_histogram(binwidth = 2000) + 
+  xlab("Total number of steps per day") + 
+  ylab("Frequency")
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+### Creating a new factor variable in the dataset with two levels - "Weekday" and "Weekend".
+
+```{r, echo=TRUE}
+day_of_week <- data_impute %>%
+  mutate(
+    date = ymd(date),
+    weekday_or_weekend = case_when(wday(date) %in% 2:6 ~ "Weekday",
+                                   wday(date) %in% c(1,7) ~ "Weekend")
+  ) %>% select(-date) %>%
+  group_by(interval, weekday_or_weekend) %>%
+  summarise(
+    steps = mean(steps)
+  )
+```
+
+
+### Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends.
+```{r}
+ggplot(day_of_week, aes(interval, steps)) + 
+  geom_line() + 
+  facet_wrap(~weekday_or_weekend, nrow = 2) +
+  xlab("Interval") + 
+  ylab("No. of Steps")
+```
